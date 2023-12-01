@@ -1,0 +1,20 @@
+?loc = Mushroom
+  ?(hp + armor) >= 35 &
+  ^foe.count < 3 &
+  ^(foe.armor > 99 | 
+  ^foe = boss)
+    equipL poison hammer
+    ?hp < maxhp
+      equipR vigor shield
+    :
+      ?foe.armor &
+      ^(foe.distance < 8 |
+      ^foe.debuffs.count >= 10)
+        equipR war
+      :
+        equipR poison wand
+  :
+    ?foe.distance >= 10
+      equipR poison wand
+    :
+      equipR vigor shield

@@ -1,0 +1,87 @@
+import Cosmetics/PetBoo
+import Cosmetics/Hats/Skully
+
+?foe.distance >= 25
+  equipR compound shield
+  ?summon.count < 1
+    equipL talisman
+    ?item.CanActivate()
+      activate L
+  :
+    ?hp < maxhp
+      equipL ouro
+    :
+      equipL triskelion 
+:
+  ?foe = poison
+    ?foe.name = acronian
+      equipL ice wand
+      equipR vigor shield
+    :
+      equipL vigor
+      equipR ice wand
+  equipL vigor
+  ?foe = ice
+    equipR fire wand
+  ?foe = fire
+    equipR aether wand
+  ?foe = vigor
+    ?(hp + armor) >= 35 &
+    ^foe.count < 3 &
+    ^(foe.armor > 99 | 
+    ^foe = boss)
+      equipL poison hammer
+      ?hp < maxhp
+        equipR vigor shield
+      :
+        ?foe.armor &
+        ^(foe.distance < 8 |
+        ^foe.debuffs.count >= 10)
+          equipR war
+        :
+          equipR poison wand
+    :
+      ?foe.distance >= 10
+        equipR poison wand
+      :
+        equipR vigor shield
+
+  ?foe = immune_to_ranged &
+  ^(foe.armor > 45 &
+  ^(hp + armor) >= 50 &
+  ^foe ! boss)
+    equipR war hammer
+
+  ?foe ! immune_to_physical
+/*
+    ?item.GetCooldown("skeleton_arm") <= 0 & 
+    ^foe.count < 2 & 
+    ^foe ! boss &
+    ^foe.distance < 7
+      equip skeleton
+      ?item.CanActivate("skeleton_arm")
+        activate R
+*/
+    ?foe.count > 10 & 
+    ^item.GetCooldown("blade") <= 0
+      equip Blade of
+      ?foe.distance <= 15 | 
+      ^foe.count >= 15
+        activate R
+    ?item.GetCooldown("mask") <= 0 &
+    ^foe.hp > 250 &
+    ^item.CanActivate("mask")
+      equipR mask
+      activate R
+
+?pickup & pickup.distance < 10
+  equip star stone
+
+?((hp + armor) < 35 | 
+^debuffs.count > 20) |
+^(foe = explode &
+^foe.distance < 5)
+  ?item.GetCooldown("mind") <= 0
+    equipL mind
+  ?(hp + armor) <= 10
+    activate potion

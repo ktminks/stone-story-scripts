@@ -1,0 +1,19 @@
+?foe ! immune_to_physical
+  ?item.GetCooldown("skeleton_arm") <= 0 & 
+  ^foe.count < 2 & 
+  ^foe ! boss &
+  ^foe.distance < 7
+    equip skeleton
+    ?item.CanActivate("skeleton_arm")
+      activate R
+  ?foe.count > 10 & 
+  ^item.GetCooldown("blade") <= 0
+    equip Blade of
+    ?foe.distance <= 15 | 
+    ^foe.count >= 15
+      activate R
+  ?item.GetCooldown("mask") <= 0 &
+  ^foe.hp > 250 &
+  ^item.CanActivate("mask")
+    equipR mask
+    activate R
