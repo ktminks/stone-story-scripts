@@ -24,39 +24,30 @@ equipR vigor shield
   ?pickup & pickup.distance < 13
     equip star stone
 :
-  /*
-  equip repeating
   ?foe = immune_to_ranged
     ?foe.distance <= 10
-      equipL poison
+      equipL vigor sword
       equipR vigor
       ?hp > 50
         equipR sword
   ?foe.name = "Wasp"
-    equipL poison
+    equipL vigor sword
     equipR vigor
 
-  ?foe = spawner
-    equipL poison
-    equipR vigor
-    ?foe.distance > 10
-      equipR bash
-    ?hp > 50
-      equipR sword
-    ?hp > 50
-      equipR sword
-      ?foe.armor
-        equipR hammer
-    :
-      equipL vigor
-*/
   ?foe = ice
     equipR fire wand
-    ?foe.distance < 10
-      equipR sword
     ?hp < 40
       equipL fire wand
       equipR vigor
+    ?hp < 30
+      equipL vigor
+    ?foe = boss
+      ?foe.armor &
+      ^foe.state = 0
+        equipL poison
+        equipR hammer
+        ?foe.distance > 10
+          equipR bashing
 
   ?foe = fire
     equipL vigor 9
@@ -66,17 +57,6 @@ equipR vigor shield
     ?hp < 40
       equipL aether
       equipR vigor
-  ?foe = boss
-    ?foe.name = Hrimnir
-      equipL vigor wand
-      equipR vigor shield
-      ?(hp + armor) >= maxhp
-        equipL fire wand
-        ?foe.state < 1
-          equipL poison
-          equipR hammer
-          ?foe.distance > 10
-            equipR bashing
     ?foe.name = "Bomb Cart" 
       equipR bash
     ?foe.name = "Bronze Guardian"
@@ -92,7 +72,8 @@ equipR vigor shield
           ?item.CanActivate("Heavy_Hammer")
             equip heavy
             activate R
-?foe = vigor
+
+  ?foe = vigor
     equipL vigor 9
     equipR fire wand
     ?hp < 50
@@ -116,30 +97,51 @@ equipR vigor shield
     :
       ?foe.distance >= 10
         equipR vigor 9
-
-  ?foe = poison
+?foe = poison
     ?hp >= 50
       equipR ice
-    ?foe ! elemental
-      ?foe.armor
-        equipL hammer
-        ?foe.distance > 13
-          equipR bash
-        :
-          equipR vigor
-      :
-        ?foe.distance < 10
-          equipL sword
-          equipR vigor
-    ?foe = boss
-      ?foe.name = "Ceiling Decorator"
-        equipR bash
+    ?hp < 50
       equipL ice
       equipR vigor
+    ?foe.count < 3 |
+    ^loc.stars < 6
+      equipL ice
+      ?item.GetCooldown("bashing") <= 0
+        equipR bash
+      :
+        equipR dash
+      ?foe.distance < 10 
+        equipR vigor
+    ?foe = boss
+      equipL poison
+      equipR bash
+      ?foe.distance < 10
+        equipL poison
+        equipR vigor
+        ?hp > 40
+          equipR sword
+      ?foe.distance > 10
+        equipL ice
+        equipR fire wand
       ?hp < 30
-        equipL vigor
+        equipR vigor
 
-  ?foe.count
+      ?foe.name = "Nagaraja"
+        ?foe.state = 3
+          ?item.GetCooldown("mind") <= 0
+            equipL mind
+          ?item.GetCooldown("bardiche") <= 0 &
+          ^foe.distance < 12 &
+          ^item.CanActivate("bardiche")
+            equip bardiche
+            activate R
+      ?foe.name = "Bolesh"
+        equipL ice
+        equipR vigor
+        ?hp >= 50
+          equipR fire wand
+
+  ?foe = boss | foe.count > 10
     ?item.GetCooldown("skeleton_arm") <= 0 & 
     ^foe.count < 2 & 
     ^foe ! boss &
@@ -147,17 +149,31 @@ equipR vigor shield
       equip skeleton
       ?item.CanActivate("skeleton_arm")
         activate R
+
     ?foe.count > 10 & 
     ^item.GetCooldown("blade") <= 0
       equip Blade of
       ?foe.distance <= 15 | 
       ^foe.count >= 15
         activate R
+
     ?item.GetCooldown("mask") <= 0 &
-    ^foe.hp > 250 &
     ^item.CanActivate("mask")
       equipR mask
       activate R
+/*
+    ?item.GetCooldown("bardiche") <= 0 &
+    ^item.CanActivate("bardiche") &
+    ^foe.distance < 10
+      equip Bardiche
+      activate R
+
+    ?item.GetCooldown("heavy") <= 0 &
+    ^item.CanActivate("heavy")
+      equip heavy
+      activate R
+*/
+
 
 ?((hp + armor) < 25 &
 ^foe.distance < 15) |
@@ -168,4 +184,3 @@ equipR vigor shield
 ?(hp + armor) <= 10 |
 ^debuffs.count > 20
   activate potion
-
