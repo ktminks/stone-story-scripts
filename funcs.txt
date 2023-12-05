@@ -1,0 +1,120 @@
+func pickPocket() 
+  ?item.GetCooldown("skeleton_arm") <= 0 & 
+  ^item.CanActivate("skeleton_arm") &
+  ^foe ! boss &
+  ^foe.count < 2 & 
+  ^foe.distance < 7
+    equip skeleton
+    activate R
+
+func getSmite()
+  ?item.GetCooldown("blade") <= 0 &
+  ^item.CanActivate("blade") &
+  ^foe.count > 10
+    equip Blade of
+    ?foe.distance <= 15 | 
+    ^foe.count >= 15
+      activate R
+
+func debuffBoss()
+  ?item.GetCooldown("mask") <= 0 &
+  ^item.CanActivate("mask") &
+  ^foe = boss
+    equipR mask
+    activate R
+
+func bigSlice()
+  ?item.GetCooldown("bardiche") <= 0 &
+  ^item.CanActivate("bardiche") &
+  ^foe.distance < 10
+    equip Bardiche
+    activate R
+
+func debuffArmor()
+  ?item.GetCooldown("hammer") <= 0 &
+  ^item.CanActivate("hammer")
+    equip heavy
+    activate R
+
+func activateMindStone()
+  ?item.GetCooldown("mind") <= 0
+    equipL mind
+
+func activateBashing()
+  ?item.GetCooldown("bash") <= 0
+    equipR bash
+  :
+    equipR dash
+
+func melee()
+  activateBashing()
+  ?foe.distance <= 10
+    equipL poison hammer
+    equipR vigor shield
+    ?hp >= 50
+      equipR sword
+
+func defaultEquip()
+  equipL vigor
+  equipR vigor shield
+  ?hp >= 50
+    equipL vigor 9
+  ?loc.stars < 6
+    activateBashing()
+    ?foe.distance < 10 
+      equipR vigor
+
+func dodgeExplosions()
+  ?foe = explode &
+  ^foe.distance < 5
+    activateMindStone()
+
+func dodgeAttacks()
+  ?foe.state = @this.stateToDodge@ &
+  ^foe.time >= @this.timeToDodge@ &
+  ^foe.damage > 0
+    activateMindStone()
+
+func handleBetweenMobs()
+  equipR compound shield
+  equipL triskelion
+  ?hp < maxhp
+    equipL ouro
+  ?summon.count < 1
+    equipL talisman
+    ?item.CanActivate()
+      activate L
+  ?pickup & pickup.distance < 13
+    equip star stone
+
+func getWeakness()
+  ?foe.type = poison
+    return ice
+  ?foe.type = ice
+    return fire
+  ?foe.type = fire
+    return aether
+  ?foe.type = vigor
+    return poison
+  ?foe.type = aether
+    return vigor
+
+func handleMobs()
+  defaultEquip()
+  var weakness = getWeakness()
+  equipR @weakness@ wand
+  ?hp < 40
+    equipL @weakness@ wand
+    equipR vigor shield
+  ?hp < 30
+    equipL vigor wand
+  ?foe = immune_to_ranged
+    melee()
+
+func print(msg)
+  >msg
+
+func printDamageState()
+  var foeState = foe.state
+  var foeTime = foe.time
+  >@foeState@ @foeTime@

@@ -1,0 +1,86 @@
+?hp < maxHp
+  equipL vigor
+:
+  equipL vigor 9
+equipR vigor shield
+
+?loc = deadwood
+  equipL poison hammer
+  equipR vigor shield
+  ?foe ! boss &
+  ^foe ! scarab
+    equipL vigor 9
+  ?foe = scarab
+    equipR compound
+    equipL sword
+  ?foe.distance > 13 &
+  ^foe = boss
+    ?foe ! poena
+      equipR bashing
+    :
+      equipL vigor 9
+
+?foe.distance >= 25
+  equipR compound shield
+  ?summon.count < 1
+    equipL talisman
+    ?item.CanActivate()
+      activate L
+  :
+    ?hp < maxhp
+      equipL ouro
+    :
+      equipL triskelion 
+:
+  ?foe = poison
+    ?foe.name = acronian
+      equipL ice wand
+      equipR vigor shield
+    :
+      equipL vigor
+      equipR ice wand
+  ?foe = ice
+    equipR fire wand
+    ?foe.distance < 10
+      equipR sword
+    ?foe = boss
+      equipL vigor
+      ?(hp + armor) >= maxhp
+        ?foe.state < 2
+          equipL poison hammer
+          ?foe.distance > 10
+            equipR bashing
+          :
+            ?foe.armor &
+            ^foe.debuffs.count >= 10
+              equipR war
+            :
+              equipR sword
+
+  ?foe = fire
+    equipL vigor 9
+    equipR vigor shield 
+  ?foe = vigor
+    ?(hp + armor) >= 35 &
+    ^foe.count < 3 &
+    ^(foe.armor > 99 | 
+    ^foe = boss)
+      equipL poison hammer
+      ?hp < maxhp
+        equipR vigor shield
+      :
+        ?foe.armor &
+        ^(foe.distance < 8 |
+        ^foe.debuffs.count >= 10)
+          equipR war
+        :
+          equipR sword
+    :
+      ?foe.distance >= 10
+        equipR vigor 9
+
+?foe = immune_to_ranged &
+  ^(foe.armor > 45 &
+  ^(hp + armor) >= 50 &
+  ^foe ! boss)
+    equipR war hammer

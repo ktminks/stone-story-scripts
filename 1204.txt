@@ -1,30 +1,4 @@
-import Cosmetics/PetBoo
-import Cosmetics/Hats/Skully
-
-?foe
-  var d = foe.distance
-  var state = foe.state
-  >@d@
-
-?hp < 50
-  equipL vigor
-?hp >= 50
-  equipL vigor 9
-equipR vigor shield
-
-?foe.distance >= 23
-  equipR compound shield
-  equipL triskelion
-  ?hp < maxhp
-    equipL ouro
-  ?summon.count < 1
-    equipL talisman
-    ?item.CanActivate()
-      activate L
-  ?pickup & pickup.distance < 13
-    equip star stone
-:
-  ?foe = immune_to_ranged
+?foe = immune_to_ranged
     ?foe.distance <= 10
       equipL vigor sword
       equipR vigor
@@ -173,14 +147,3 @@ equipR vigor shield
       equip heavy
       activate R
 */
-
-
-?((hp + armor) < 25 &
-^foe.distance < 15) |
-^(foe = explode &
-^foe.distance < 5)
-  ?item.GetCooldown("mind") <= 0
-    equipL mind
-?(hp + armor) <= 10 |
-^debuffs.count > 20
-  activate potion
