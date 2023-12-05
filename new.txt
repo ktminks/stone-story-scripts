@@ -9,7 +9,6 @@ func pickPocket()
 
 func getSmite()
   ?item.GetCooldown("blade") <= 0 &
-  ^item.CanActivate("blade") &
   ^foe.count > 10
     equip Blade of
     ?foe.distance <= 15 | 
@@ -18,23 +17,24 @@ func getSmite()
 
 func debuffBoss()
   ?item.GetCooldown("mask") <= 0 &
-  ^item.CanActivate("mask") &
-  ^foe = boss
+  ^foe = boss &
+  ^foe.name ! "Nagaraja"
     equipR mask
-    activate R
+    ?item.CanActivate("mask")
+      activate R
 
 func bigSlice()
   ?item.GetCooldown("bardiche") <= 0 &
-  ^item.CanActivate("bardiche") &
   ^foe.distance < 10
     equip Bardiche
-    activate R
+    ?item.CanActivate("bardiche")
+      activate R
 
 func debuffArmor()
-  ?item.GetCooldown("hammer") <= 0 &
-  ^item.CanActivate("hammer")
+  ?item.GetCooldown("hammer") <= 0
     equip heavy
-    activate R
+    ?item.CanActivate("hammer")
+      activate R
 
 func activateMindStone()
   ?item.GetCooldown("mind") <= 0
@@ -55,24 +55,26 @@ func melee()
       equipR sword
 
 func defaultEquip()
-  equipL vigor
+  equipL vigor 10
   equipR vigor shield
   ?hp >= 50
-    equipL vigor 9
+    ?foe = aether
+      equipR vigor 9
+    :
+      equipL vigor 9
   ?loc.stars < 6
     activateBashing()
     ?foe.distance < 10 
-      equipR vigor
+      equipR vigor shield 
 
 func dodgeExplosions()
   ?foe = explode &
   ^foe.distance < 5
     activateMindStone()
 
-func dodgeAttacks()
-  ?foe.state = @this.stateToDodge@ &
-  ^foe.time >= @this.timeToDodge@ &
-  ^foe.damage > 0
+func dodgeBoss()
+  ?foe.state = 2 &
+  ^foe.time >= 100
     activateMindStone()
 
 func handleBetweenMobs()
@@ -87,27 +89,28 @@ func handleBetweenMobs()
   ?pickup & pickup.distance < 13
     equip star stone
 
-func getWeakness()
-  ?foe.type = poison
-    return ice
-  ?foe.type = ice
-    return fire
-  ?foe.type = fire
-    return aether
-  ?foe.type = vigor
-    return poison
-  ?foe.type = aether
-    return vigor
+func getLeftHand()
+  ?hp <= 30
+    return "vigor wand"
+  ?foe = poison
+    return "ice wand +7"
+  ?foe = ice
+    return "fire wand"
+  ?foe = fire
+    return "aether wand"
+  ?foe = vigor
+    return "poison wand"
+  ?foe = immune_to_ranged
+    return "poison hammer"
+:
+    return "fire wand"
+
 
 func handleMobs()
-  defaultEquip()
-  var weakness = getWeakness()
-  equipR @weakness@ wand
-  ?hp < 40
-    equipL @weakness@ wand
-    equipR vigor shield
-  ?hp < 30
-    equipL vigor wand
+  var wep = getLeftHand()
+  var rh = getRightHand()
+  equipL @wep@
+  equipR @rh@
   ?foe = immune_to_ranged
     melee()
 
@@ -118,46 +121,37 @@ func printDamageState()
   var foeState = foe.state
   var foeTime = foe.time
   >@foeState@ @foeTime@
-// ----------- NEARBY MOBS ----------- //
 
-?foe.distance < 23
+?foe.distance > 20
+  handleBetweenMobs()
+:?(hp + armor) <= 10 |
+  ^debuffs.count > 20
+    activate potion
+:
   ?foe.damage
     printDamageState()
 
-  handleMobs()
-
-  // --------- HANDLE BOSSES --------- //
-  ?foe = boss
-    // set vars per boss
+  defaultEquip()
+  ?foe ! boss
+    getSmite()
+    handleMobs()
+  :
     var stateToDodge = 2
     var timeToDodge = 5
-    equipL poison hammer
-    equipR bashing
 
-    // poison
-    ?loc = temple
-      @stateToDodge@ = 3
-      equipR ice wand
-      ?hp >= 50
-        equipL ice wand
-        equipR fire wand
-      ?foe.distance < 10
-        equipL poison
-        equipR vigor shield
-        ?hp > 40
-          equipR sword
-
-    ?loc = caves
+    handleMobs()
+?loc = caves
       ?foe.name = "Bolesh"
-        @stateToDodge@ = 3
-        @timeToDodge@ = 0.5
+        stateToDodge = 3
+        timeToDodge = 0.5
         equipR ice wand
         ?hp >= 50
           equipL ice wand
           equipR fire wand
-    
+
     // ice
     ?loc = Icy
+      handleMobs()
       ?foe.armor &
       ^foe.state = 0
         equipL poison
@@ -184,9 +178,6 @@ func printDamageState()
     // aether
     ?loc = haunted
       ?foe.name = "Pallas"
-        @timeToDodge@ = 50
-        equipL vigor 9
-        equipR fire wand
         ?foe.state > 2
           equipL poison
           equipR bashing
@@ -200,7 +191,7 @@ func printDamageState()
       ?foe.armor
         equipL poison
         equipR war
-        ?foe.distance > 8  
+        ?foe.distance > 8
           equipR bash
       :
         ?foe.distance < 8
@@ -212,21 +203,9 @@ func printDamageState()
       ^hp < 50
         equipR vigor shield
 
-    ?hp < 30
-      equipR vigor shield
-
-    dodgeAttacks()
-
-  // ----------- ACTIVATE ITEMS ----------- //
-
-  pickPocket()
-  getSmite()
-  debuffBoss()
-  bigSlice()
-  debuffArmor()
-
-  ?(hp + armor) <= 10 |
-  ^debuffs.count > 20
-    activate potion
-:
-  handleBetweenMobs()
+    ?foe.debuffs.string ! "damage"
+      equipR poison 
+    ?foe.debuffs.string ! "dot:"
+      equipR fire wand
+    debuffBoss()
+    //dodgeBoss()
